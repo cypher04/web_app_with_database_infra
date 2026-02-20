@@ -55,10 +55,10 @@ variable "mssql_db_name" {
 # }
 
 
-variable "mssql_server_id" {
-    description = "The ID of the MSSQL Server"
-    type        = any
-}
+# variable "mssql_server_id" {
+#     description = "The ID of the MSSQL Server"
+#     type        = any
+# }
 
 variable "subscription_id" {
     description = "The subscription ID for the Azure resources"
