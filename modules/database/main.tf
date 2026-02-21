@@ -1,21 +1,17 @@
 
-
-
-
 resource "azurerm_mssql_server" "mssql_server" {
-    name                         = "mssql-server-${var.environment}"
+    name                         = "${var.project_name}-mssql-server-${var.environment}"
     resource_group_name          = var.resource_group_name
     location                     = var.location
     version                      = "12.0"
     administrator_login          = var.administrator_login
     administrator_login_password = var.administrator_password  
     public_network_access_enabled = false
+    
 
     identity {
         type = "SystemAssigned"
     }
-
-
     
     tags = {
         environment = var.environment
@@ -31,10 +27,12 @@ resource "azurerm_mssql_database" "msdb" {
     max_size_gb       = 2
     license_type      = "BasePrice"
     enclave_type = "VBS"
+    
 
     tags = {
         environment = var.environment
     }   
+
 }
 
 resource "azurerm_mssql_virtual_network_rule" "sql_vnet_rule" {

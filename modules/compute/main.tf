@@ -17,7 +17,7 @@ resource "azurerm_app_service_connection" "database" {
 }
   
 resource "azurerm_linux_web_app" "liweb" {
-    name                = "webapp-${var.environment}"
+    name                = "webappdata-${var.environment}"
     location            = var.location
     resource_group_name = var.resource_group_name
     service_plan_id     = azurerm_service_plan.main.id

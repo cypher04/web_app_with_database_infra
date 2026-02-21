@@ -7,6 +7,12 @@ resource "azurerm_resource_group" "main" {
   }
 }
 
+resource "azurerm_user_assigned_identity" "uai-webappdata" {
+  name                = "uai-webappdata-${var.environment}"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+}
+
 data "azurerm_client_config" "current" {
   
 }
@@ -47,6 +53,7 @@ module "security" {
   subnet_ids          = module.networking.subnet_ids
   subnet_prefixes     = var.subnet_prefixes
   public_ip           = module.networking.public_ip
+  user_identity_id = azurerm_user_assigned_identity.uai-webappdata.id
   depends_on          = [module.networking]
   pip_id = module.networking.pip_id
 }
@@ -63,6 +70,7 @@ module "database" {
   subnet_prefixes        = [var.subnet_prefixes["database"]]
   mssql_server_name      = var.mssql_server_name
   mssql_db_name          = var.mssql_db_name
+  project_name            = var.project_name
   depends_on             = [module.networking]
 }
 

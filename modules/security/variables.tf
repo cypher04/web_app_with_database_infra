@@ -32,3 +32,8 @@ variable "pip_id" {
     type        = any
 }
 
+variable "user_identity_id" {
+    description = "The ID of the user assigned identity"
+    type        = string
+}
+

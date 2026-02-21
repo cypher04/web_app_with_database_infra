@@ -24,6 +24,14 @@ resource "azurerm_subnet" "app" {
     resource_group_name  = var.resource_group_name
     virtual_network_name = azurerm_virtual_network.main.name
     address_prefixes     = [var.subnet_prefixes["app"]]
+
+    delegation {
+        name = "delegation-app-${var.environment}"
+        service_delegation {
+            name    = "Microsoft.Web/serverFarms"
+            actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+        }
+    }
 }
 
 resource "azurerm_public_ip" "pip" {

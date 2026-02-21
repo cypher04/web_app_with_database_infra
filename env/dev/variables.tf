@@ -65,6 +65,11 @@ variable "subscription_id" {
     type        = string
 }
 
+
+variable "project_name" {
+    description = "The name of the project"
+    type        = string
+}
 # variable "subnet_ids" {
 #     description = "The ID of the subnet where resources will be deployed"
 #     type        = list(string) 

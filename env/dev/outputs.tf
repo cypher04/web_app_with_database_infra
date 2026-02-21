@@ -3,6 +3,7 @@
 #     value       = var.subnet_id
 # }
 
+
 // deployment outputs
 output "subnet_ids" {
   description = "The subnet prefixes used in the deployment"
@@ -24,4 +25,18 @@ output "resource_group_name" {
   value       = var.resource_group_name
 }
 
+output "user_assigned_principal_id" {
+  description = "The principal ID of the user assigned identity"
+  value       = azurerm_user_assigned_identity.uai-webappdata.principal_id
+}
+
+output "user_assigned_tenant_id" {
+  description = "The tenant ID of the user assigned identity"
+  value       = azurerm_user_assigned_identity.uai-webappdata.tenant_id
+}
+
+output "user_assigned_id" {
+  description = "The ID of the user assigned identity"
+  value       = azurerm_user_assigned_identity.uai-webappdata.id
+}
 

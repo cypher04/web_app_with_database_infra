@@ -12,7 +12,7 @@ resource "azurerm_network_security_group" "nsg" {
         access                     = "Allow"
         protocol                   = "Tcp"
         source_port_range          = "*"
-        destination_port_range     = "80"
+        destination_port_range     = "65200-65535"
         source_address_prefix      = "*"
         destination_address_prefix = "*"
     }
@@ -24,7 +24,7 @@ resource "azurerm_network_security_group" "nsg" {
         access                     = "Allow"
         protocol                   = "Tcp"
         source_port_range          = "*"
-        destination_port_range     = "443"
+        destination_port_range     = "65200-65535"
         source_address_prefix      = "*"
         destination_address_prefix = "*"
     }    
@@ -113,7 +113,8 @@ resource "azurerm_application_gateway" "appg" {
     location            = var.location
     resource_group_name = var.resource_group_name
     identity {
-        type = "SystemAssigned"
+        type = "UserAssigned"
+        identity_ids = [var.user_identity_id]
     }
     sku {
         name = "WAF_v2"
@@ -129,7 +130,7 @@ resource "azurerm_application_gateway" "appg" {
     }
     frontend_port {
         name = local.frontend_port_name
-        port = 443
+        port = 80
     }
     frontend_ip_configuration {
         name                 = local.frontend_ip_configuration_name
@@ -141,18 +142,19 @@ resource "azurerm_application_gateway" "appg" {
     backend_http_settings {
         name                  = local.backend_http_settings_name
         cookie_based_affinity = "Disabled"
-        port                  = 443
-        protocol              = "Https"
+        port                  = 80
+        protocol              = "Http"
         request_timeout       = 20
     }
     http_listener {
         name                           = local.http_listener_name
         frontend_ip_configuration_name = local.frontend_ip_configuration_name
         frontend_port_name             = local.frontend_port_name
-        protocol                       = "Https"
+        protocol                       = "Http"
     }
     request_routing_rule {
         name                       = local.request_routing_rule_name
+        priority = 9
         rule_type                  = "Basic"
         http_listener_name         = local.http_listener_name
         backend_address_pool_name  = local.backend_address_pool_name
@@ -167,30 +169,96 @@ resource "azurerm_web_application_firewall_policy" "waf_policy" {
     location            = var.location
     resource_group_name = var.resource_group_name
 
-    custom_rules {
-        name      = "BlockSQLInjection"
-        priority  = 1
-        rule_type = "MatchRule"
+     custom_rules {
+    name      = "Rule1"
+    priority  = 1
+    rule_type = "MatchRule"
 
-        match_conditions {
-            match_variables {
-                variable_name = "QueryString"
-            }
-            operator       = "Contains"
-            match_values   = ["SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "UNION"]
-        }
+    match_conditions {
+      match_variables {
+        variable_name = "RemoteAddr"
+      }
 
-        action = "Block"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
+    }
+
+    action = "Block"
+  }
+
+  custom_rules {
+    name      = "Rule2"
+    priority  = 2
+    rule_type = "MatchRule"
+
+    match_conditions {
+      match_variables {
+        variable_name = "RemoteAddr"
+      }
+
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
+    }
+
+    match_conditions {
+      match_variables {
+        variable_name = "RequestHeaders"
+        selector      = "UserAgent"
+      }
+
+      operator           = "Contains"
+      negation_condition = false
+      match_values       = ["Windows"]
+    }
+
+    action = "Block"
+  }
+
+    policy_settings {
+      enabled = true
+      mode = "Prevention"
+      request_body_check = true
+     file_upload_limit_in_mb = 100
+     max_request_body_size_in_kb = 128
     }
 
     managed_rules {
-        managed_rule_set {
+
+        exclusion {
+      match_variable          = "RequestHeaderNames"
+      selector                = "x-company-secret-header"
+      selector_match_operator = "Equals"
+    }
+    exclusion {
+      match_variable          = "RequestCookieNames"
+      selector                = "too-tasty"
+      selector_match_operator = "EndsWith"
+    }
+    managed_rule_set {
             type    = "OWASP"
             version = "3.2"
+    rule_group_override {
+        rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+        rule {
+          id      = "920300"
+          enabled = true
+          action  = "Log"
+        }
+
+        rule {
+          id      = "920440"
+          enabled = true
+          action  = "Block"
+        }
+      }
         }
     }
   
 }
+  
+
 
 
 
