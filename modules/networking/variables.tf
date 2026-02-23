@@ -32,4 +32,7 @@ variable "project_name" {
     description = "The name of the project"
     type        = string
 }
-
+variable "mssql_server_id" {
+    description = "The ID of the MSSQL Server"
+    type        = string
+}

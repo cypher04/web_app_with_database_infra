@@ -56,5 +56,28 @@ resource "azurerm_private_dns_zone_virtual_network_link" "pdz_vnet_link" {
     registration_enabled  = false
 }
 
+resource "azurerm_private_endpoint" "pe-database" {
+    name                = "${var.project_name}-pe-database-${var.environment}"
+    location            = var.location
+    resource_group_name = var.resource_group_name
+    subnet_id           = azurerm_subnet.database.id
 
-// Private endpoint for App Service has been moved to root module to avoid circular dependency
+    private_service_connection {
+        name                           = "${var.project_name}-psc-database-${var.environment}"
+        private_connection_resource_id = var.mssql_server_id
+        is_manual_connection           = false
+        subresource_names              = ["sqlServer"]
+    }
+
+    private_dns_zone_group {
+        name                 = "db-dns-zone-group"
+        private_dns_zone_ids = [azurerm_private_dns_zone.pdz.id]
+    }
+
+    depends_on = [module.database]
+  
+}
+
+
+
+
