@@ -35,11 +35,5 @@ resource "azurerm_mssql_database" "msdb" {
 
 }
 
-resource "azurerm_mssql_virtual_network_rule" "sql_vnet_rule" {
-    name      = "sql-vnet-rule-${var.environment}"
-    server_id = azurerm_mssql_server.mssql_server.id
-    subnet_id = var.subnet_id
-}
-
 
 

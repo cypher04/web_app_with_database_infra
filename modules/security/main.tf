@@ -126,7 +126,7 @@ resource "azurerm_application_gateway" "appg" {
     }
     gateway_ip_configuration {
         name      = local.gateway_ip_configuration_name
-        subnet_id = var.subnet_ids[0]
+        subnet_id = var.subnet_ids[2]
     }
     frontend_port {
         name = local.frontend_port_name

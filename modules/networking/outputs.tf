@@ -31,3 +31,8 @@ output "public_ip" {
     value       = azurerm_public_ip.pip
 }
 
+output "private_dns_zone_id" {
+    description = "The Private DNS Zone ID"
+    value       = azurerm_private_dns_zone.pdz.id
+}
+

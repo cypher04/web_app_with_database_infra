@@ -41,3 +41,20 @@ resource "azurerm_public_ip" "pip" {
     allocation_method   = "Static"
 }
 
+// create private endpoint for database
+
+resource "azurerm_private_dns_zone" "pdz" {
+    name                = "privatelink.azurewebsites.net"
+    resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "pdz_vnet_link" {
+    name                  = "${var.project_name}-pdz-vnet-link-${var.environment}"
+    resource_group_name   = var.resource_group_name
+    private_dns_zone_name = azurerm_private_dns_zone.pdz.name
+    virtual_network_id    = azurerm_virtual_network.main.id
+    registration_enabled  = false
+}
+
+
+// Private endpoint for App Service has been moved to root module to avoid circular dependency

@@ -10,6 +10,11 @@ output "target_resource_id" {
   
 }
 
+output "linux_web_app_id" {
+    description = "The ID of the Linux Web App"
+    value       = azurerm_linux_web_app.liweb.id
+}
+
 
 
 

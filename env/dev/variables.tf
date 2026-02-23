@@ -75,4 +75,9 @@ variable "project_name" {
 #     type        = list(string) 
 # }
 
+# variable "linux_web_app_id" {
+#     description = "The ID of the Linux Web App"
+#     type        = string
+# }
+
 

@@ -38,5 +38,16 @@ output "user_assigned_tenant_id" {
 output "user_assigned_id" {
   description = "The ID of the user assigned identity"
   value       = azurerm_user_assigned_identity.uai-webappdata.id
-}
+} 
+
+// output linux web app details
+
+# output "linux_web_app_id" {
+#   description = "The ID of the Linux Web App"
+#   value       = azurerm_linux_web_app.liweb.id
+# }
+
+
+
+
 

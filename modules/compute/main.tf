@@ -7,14 +7,14 @@ resource "azurerm_service_plan" "main" {
         sku_name = "P1v2"
 }
 
-resource "azurerm_app_service_connection" "database" {
-    name               = "database-connection"
-    app_service_id     = azurerm_linux_web_app.liweb.id
-    target_resource_id = var.mssql_server_id
-    authentication {
-        type = "systemAssignedIdentity"
-    }
-}
+# resource "azurerm_app_service_connection" "database" {
+#     name               = "database-connection"
+#     app_service_id     = azurerm_linux_web_app.liweb.id
+#     target_resource_id = var.mssql_server_id
+#     authentication {
+#         type = "systemAssignedIdentity"
+#     }
+# }
   
 resource "azurerm_linux_web_app" "liweb" {
     name                = "webappdata-${var.environment}"
