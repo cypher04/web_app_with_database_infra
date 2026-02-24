@@ -26,6 +26,7 @@ Static Public IP (pip-dev)
 Application Gateway (appg-dev) [WAF_v2, subnet: subnet-dev (main)]
   │  - Listens on port 80 (HTTP)
   │  - Frontend IP bound to pip-dev
+  │  - Autoscale: min 2, max 10 instances
   │  - WAF Policy (waf-policy-dev) in Prevention mode
   │    - Blocks IPs: 192.168.1.0/24, 10.0.0.0/24
   │    - Blocks requests from 192.168.1.0/24 with "Windows" User-Agent
@@ -34,6 +35,10 @@ Application Gateway (appg-dev) [WAF_v2, subnet: subnet-dev (main)]
   │
   ▼
 Backend Address Pool (appg-backend-pool)
+  │  - Backend target: webappdata-dev FQDN (default_hostname)
+  │  - HTTP settings: port 80, request timeout 20s, no cookie affinity
+  │
+  │  DNS resolves FQDN via Private DNS Zone (privatelink.azurewebsites.net)
   │
   ▼
 Private Endpoint (webapp-pe-appservice-dev) [subnet: subnet-db-dev (database)]
