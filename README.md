@@ -1,84 +1,113 @@
 # Azure Web Application with Database Infrastructure
 
-A production-ready Terraform project that deploys a secure web application infrastructure on Azure with MSSQL database, networking, and security components.
+A production-ready Terraform project that deploys a secure web application infrastructure on Azure with MSSQL database, private networking, WAF-protected Application Gateway, and private endpoints.
 
-## 📋 Overview
+## Overview
 
-This Terraform project provisions a complete Azure infrastructure for hosting a Node.js web application with the following components:
+This Terraform project provisions a complete Azure infrastructure for hosting a web application with the following components:
 
-- **Application Gateway**: Azure Application Gateway (Standard_v2) for load balancing and HTTP routing
-- **Compute**: Linux App Service with Node.js 14 LTS runtime
-- **Database**: Azure MSSQL Server with database and VNet integration
-- **Networking**: Virtual Network with segregated subnets for app, database, and management
-- **Security**: Network Security Groups with rule-based access control
+- **Application Gateway**: Azure Application Gateway (WAF_v2) with autoscaling, Web Application Firewall policy, and FQDN-based backend routing
+- **Compute**: Linux App Service (P1v2) with system-assigned managed identity, client certificate authentication, and VNet integration
+- **Database**: Azure MSSQL Server (v12.0) with public network access disabled, accessible only via private endpoint
+- **Networking**: Virtual Network with segregated subnets, private endpoints for both App Service and MSSQL, and Private DNS Zone
+- **Security**: Network Security Groups, WAF policy with OWASP 3.2 rules, and user-assigned managed identity
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-Resource Group
-├── Virtual Network (10.0.0.0/16)
-│   ├── Management Subnet (10.0.1.0/24)
-│   │   └── Application Gateway (Standard_v2, Capacity: 2)
-│   ├── Database Subnet (10.0.2.0/24)
-│   └── App Subnet (10.0.3.0/24)
+Resource Group (rg-webapp-dev)
 │
-├── Public IP Address (Dynamic)
-│   └── Connected to Application Gateway
+├── User-Assigned Managed Identity (uai-webappdata-dev)
+│   └── Assigned to Application Gateway
 │
-├── Application Gateway
-│   ├── Frontend IP Configuration (Public IP)
-│   ├── Backend Pool (Web App)
-│   ├── HTTP Listener (Port 80)
-│   └── Routing Rules
+├── Virtual Network: vnet-dev (10.0.0.0/16)
+│   ├── Main Subnet: subnet-dev (10.0.1.0/24)
+│   │   └── Application Gateway (WAF_v2, autoscale 2-10)
+│   ├── Database Subnet: subnet-db-dev (10.0.2.0/24)
+│   │   ├── Private Endpoint → MSSQL Server (sqlServer)
+│   │   └── Private Endpoint → Linux Web App (sites)
+│   └── App Subnet: subnet-app-dev (10.0.3.0/24)
+│       └── Delegated to Microsoft.Web/serverFarms
+│           └── App Service VNet Integration
 │
-├── App Service Plan (Standard S1)
-│   └── Linux Web App (Node.js 14 LTS)
-│       └── VNet Integration with App Subnet
+├── Public IP: pip-dev (Static)
+│   └── Frontend IP for Application Gateway
 │
-├── MSSQL Server (v12.0)
-│   ├── Database (S0 tier, 2GB)
-│   └── VNet Rule for Database Subnet
+├── Private DNS Zone: privatelink.azurewebsites.net
+│   └── Linked to vnet-dev
+│
+├── Application Gateway: appg-dev
+│   ├── SKU: WAF_v2 (autoscale min 2, max 10)
+│   ├── Frontend: pip-dev on port 80
+│   ├── Backend Pool: Web App FQDN
+│   ├── WAF Policy: Prevention mode, OWASP 3.2
+│   └── Routing: Basic rule → backend HTTP settings (port 80)
+│
+├── App Service Plan: asp-dev (P1v2, Linux)
+│   └── Linux Web App: webappdata-dev
+│       ├── System-Assigned Managed Identity
+│       ├── Client Certificate: Required
+│       ├── Auth: Enabled (redirect unauthenticated)
+│       ├── Port: 3000
+│       └── DATABASE_URL → MSSQL connection string
+│
+├── MSSQL Server: webapp-mssql-server-dev
+│   ├── Version: 12.0
+│   ├── Public Network Access: Disabled
+│   ├── System-Assigned Managed Identity
+│   └── Database: maindb (S0, 2GB, VBS enclave)
 │
 └── Network Security Groups
-    ├── App NSG (HTTP/HTTPS allowed)
-    └── Database NSG (Port 1433 from app subnet only)
+    ├── nsg-dev → subnet-app-dev
+    │   └── Allow ports 65200-65535 (App Gateway management)
+    └── sg-db-dev → subnet-db-dev
+        ├── Allow TCP 1433 from app subnet (10.0.3.0/24)
+        └── Deny all other inbound/outbound
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 web_app_with_database_infra/
+├── README.md
+├── ARCHITECTURE.md
+├── Traffic_flow.md
+├── backend/
+│   ├── main.tf                  # Backend state storage resources
+│   └── providers.tf
 ├── env/
 │   ├── dev/
-│   │   ├── main.tf              # Root module configuration
-│   │   ├── variables.tf         # Input variables
-│   │   ├── outputs.tf           # Output values
-│   │   ├── providers.tf         # Azure provider configuration
-│   │   ├── backend.tf           # State backend configuration
+│   │   ├── main.tf              # Root module — orchestrates all modules
+│   │   ├── variables.tf         # Input variable declarations
+│   │   ├── outputs.tf           # Deployment output values
+│   │   ├── providers.tf         # Azure provider config (azurerm 4.1.0)
+│   │   ├── backend.tf           # Remote state backend (Azure Storage)
 │   │   └── terraform.tfvars     # Environment-specific values
 │   ├── stage/                   # Staging environment (placeholder)
 │   └── prod/                    # Production environment (placeholder)
-│
-└── modules/
-    ├── compute/                 # App Service resources
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   └── output.tf
-    ├── database/                # MSSQL Server and database
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   └── outputs.tf
-    ├── networking/              # VNet and subnets
-    │   ├── main.tf
-    │   ├── variables.tf
-    │   └── outputs.tf
-    └── security/                # Network Security Groups & App Gateway
-        ├── main.tf
-        ├── variables.tf
-        └── outputs.tf
+├── modules/
+│   ├── compute/                 # App Service Plan + Linux Web App + VNet integration
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── output.tf
+│   ├── database/                # MSSQL Server + Database
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── networking/              # VNet, subnets, Public IP, Private DNS, DB private endpoint
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   └── security/                # NSGs, Application Gateway, WAF Policy
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+└── workspace/
+    ├── module_web_app_with_database_infra.code-workspace
+    └── root_web_app_with_database_infra.code-workspace
 ```
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -106,15 +135,24 @@ web_app_with_database_infra/
    ```
 
 4. **Configure variables**
-   
+
    Edit `terraform.tfvars` with your values:
    ```hcl
    resource_group_name    = "rg-webapp-dev"
-   location               = "East US"
+   project_name           = "webapp"
+   location               = "West Europe"
    environment            = "dev"
    administrator_login    = "your-admin-username"
    administrator_password = "<use-secure-password>"
    subscription_id        = "<your-subscription-id>"
+   mssql_server_name      = "webapp-sqlserver-dev"
+   mssql_db_name          = "webappdbdev"
+   address_space          = ["10.0.0.0/16"]
+   subnet_prefixes = {
+     main     = "10.0.1.0/24"
+     database = "10.0.2.0/24"
+     app      = "10.0.3.0/24"
+   }
    ```
 
 5. **Initialize Terraform**
@@ -132,61 +170,83 @@ web_app_with_database_infra/
    terraform apply
    ```
 
-## 🔧 Configuration
+## Configuration
 
 ### Required Variables
 
 | Variable | Type | Description | Example |
 |----------|------|-------------|---------|
-| `resource_group_name` | string | Name of the resource group | `rg-webapp-dev` |
-| `location` | string | Azure region | `East US` |
-| `environment` | string | Environment name | `dev`, `stage`, `prod` |
-| `administrator_login` | string | SQL Server admin username | `your-admin-username` |
-| `administrator_password` | string | SQL Server admin password | `<secure-password>` |
-| `subscription_id` | string | Azure subscription ID | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
-| `mssql_server_name` | string | MSSQL Server name | `webapp-sqlserver-dev` |
-| `mssql_db_name` | string | Database name | `webappdbdev` |
+| `resource_group_name` | `string` | Name of the resource group | `rg-webapp-dev` |
+| `project_name` | `string` | Project name used in resource naming | `webapp` |
+| `location` | `string` | Azure region | `West Europe` |
+| `environment` | `string` | Environment name | `dev`, `stage`, `prod` |
+| `administrator_login` | `string` | SQL Server admin username | `sqladminuser` |
+| `administrator_password` | `string` (sensitive) | SQL Server admin password | `<secure-password>` |
+| `subscription_id` | `string` | Azure subscription ID | `xxxxxxxx-xxxx-...` |
+| `mssql_server_name` | `string` | MSSQL Server name | `webapp-sqlserver-dev` |
+| `mssql_db_name` | `string` | Database name | `webappdbdev` |
+| `address_space` | `list(string)` | VNet address space | `["10.0.0.0/16"]` |
+| `subnet_prefixes` | `map(string)` | Subnet CIDR blocks (keys: `main`, `database`, `app`) | See above |
 
 ### Network Configuration
 
-Default subnet configuration:
-- **Main Subnet**: `10.0.1.0/24` - Management and general resources
-- **Database Subnet**: `10.0.2.0/24` - MSSQL Server with VNet rule
-- **App Subnet**: `10.0.3.0/24` - App Service VNet integration
+| Subnet | CIDR | Purpose |
+|--------|------|---------|
+| `main` | `10.0.1.0/24` | Application Gateway |
+| `database` | `10.0.2.0/24` | Private endpoints (MSSQL + App Service) |
+| `app` | `10.0.3.0/24` | App Service VNet integration (delegated to `Microsoft.Web/serverFarms`) |
 
-## 🔐 Security Features
+### State Backend
 
-- **Application Gateway**: Single entry point for all HTTP/HTTPS traffic with centralized routing
-- **Network Isolation**: Subnets segregated by function (management, app, database)
-- **NSG Rules**: 
-  - HTTP (80) and HTTPS (443) allowed to app subnet
-  - Database port (1433) restricted to app subnet only
-  - Deny all other inbound traffic
-- **VNet Integration**: App Service connected to private subnet
-- **Database VNet Rule**: MSSQL Server accessible only from database subnet
-- **Load Balancing**: Application Gateway Standard_v2 with capacity of 2 instances
-- **Sensitive Values**: Passwords marked as sensitive in Terraform
+Remote state is stored in Azure Storage:
 
-## 📊 Outputs
+| Setting | Value |
+|---------|-------|
+| Resource Group | `webdatadev-webdata-rg` |
+| Storage Account | `webdatastatedev` |
+| Container | `tfstate` |
+| Key | `terraform.tfstate` |
 
-After deployment, Terraform outputs the following:
+## Security Features
 
-```hcl
-subnet_ids          # Map of all subnet IDs
-mssql_server_name   # MSSQL Server name
-mssql_db_name       # Database name
-```
+- **WAF v2 Application Gateway**: Web Application Firewall in Prevention mode with OWASP 3.2 managed rule set, custom IP blocking rules, and request body inspection
+- **Private Endpoints**: Both the App Service and MSSQL Server are accessible only via private endpoints on the database subnet — no public network exposure
+- **Private DNS Zone**: `privatelink.azurewebsites.net` linked to the VNet for private endpoint DNS resolution
+- **Network Isolation**: Three subnets segregated by function (gateway, app integration, private endpoints)
+- **NSG Rules**:
+  - App subnet: Allows ports 65200-65535 (required for Application Gateway v2 management)
+  - Database subnet: Allows SQL port 1433 only from the app subnet, denies all other traffic
+- **Client Certificate Authentication**: Required on the Linux Web App
+- **App Service Auth**: Enabled with redirect for unauthenticated clients
+- **Managed Identities**: System-assigned on Web App and MSSQL Server; user-assigned on Application Gateway
+- **MSSQL Public Access Disabled**: Database server is only reachable through the private endpoint
+- **Sensitive Values**: Passwords marked as sensitive in Terraform variables
 
-## 🔄 Module Dependencies
+## Outputs
+
+After deployment, Terraform outputs:
+
+| Output | Description |
+|--------|-------------|
+| `subnet_ids` | Subnet prefix map |
+| `mssql_server_name` | MSSQL Server name |
+| `mssql_db_name` | Database name |
+| `resource_group_name` | Resource group name |
+| `user_assigned_principal_id` | Principal ID of the user-assigned managed identity |
+| `user_assigned_tenant_id` | Tenant ID of the user-assigned managed identity |
+| `user_assigned_id` | Resource ID of the user-assigned managed identity |
+
+## Module Dependencies
 
 The modules are deployed in the following order:
 
-1. **Networking** - Creates VNet, subnets, and public IP (no dependencies)
-2. **Database** - Depends on networking module for subnet IDs
-3. **Compute** - Depends on database module for connection string
-4. **Security** - Depends on networking module for subnet associations and Application Gateway configuration
+1. **Networking** — Creates VNet, subnets, Public IP, Private DNS Zone, and database private endpoint
+2. **Database** — Creates MSSQL Server and database (uses networking subnet output)
+3. **Compute** — Creates App Service Plan, Linux Web App, and VNet integration (depends on database for server ID)
+4. **Security** — Creates NSGs, Application Gateway (WAF_v2), and WAF policy (depends on networking for subnets/IPs and compute for web app FQDN)
+5. **App Service Private Endpoint** — Created in root module to avoid circular dependency (depends on compute and networking)
 
-## 🛠️ Maintenance
+## Maintenance
 
 ### Updating Infrastructure
 
@@ -201,19 +261,18 @@ cd env/dev
 terraform destroy
 ```
 
-⚠️ **Warning**: This will delete all resources. Ensure you have backups if needed.
+> **Warning**: This will delete all resources. Ensure you have backups if needed.
 
-## 📝 Best Practices
+## Best Practices
 
-1. **Secrets Management**: 
+1. **Secrets Management**:
    - Never commit `terraform.tfvars` with real passwords
    - Use Azure Key Vault for production secrets
    - Consider using environment variables for sensitive values
 
 2. **State Management**:
-   - Configure remote state backend in `backend.tf`
-   - Use Azure Storage Account for team collaboration
-   - Enable state locking to prevent concurrent modifications
+   - Remote state backend is configured in `backend.tf` (Azure Storage)
+   - State locking is enabled to prevent concurrent modifications
 
 3. **Environment Management**:
    - Use separate state files for dev/stage/prod
@@ -221,34 +280,37 @@ terraform destroy
    - Tag resources with environment identifiers
 
 4. **Resource Naming**:
-   - Follow Azure naming conventions
-   - Use environment suffixes (`-dev`, `-prod`)
-   - Ensure globally unique names for resources that require it
+   - Resources use the pattern `{resource}-{environment}` or `{project}-{resource}-{environment}`
+   - Ensure globally unique names for resources that require it (e.g., MSSQL Server)
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
-**Issue**: "Error: Incorrect attribute value type"
-- **Solution**: Ensure subnet `address_prefixes` uses list format: `[var.subnet_prefixes["app"]]`
+**Issue**: Dependency cycle error
+- **Cause**: Circular references between modules (e.g., networking needing compute output while compute needs networking output)
+- **Solution**: Resources that depend on outputs from multiple modules (like the App Service private endpoint) are created in the root module instead
 
 **Issue**: "Resource names must be globally unique"
-- **Solution**: Update `mssql_server_name` in `terraform.tfvars` to a unique value
+- **Solution**: Update `mssql_server_name` and `project_name` in `terraform.tfvars` to unique values
 
 **Issue**: Authentication errors
-- **Solution**: Run `az login` and ensure subscription is set correctly
+- **Solution**: Run `az login` and ensure the subscription is set correctly with `az account set`
 
-## 📚 Additional Resources
+**Issue**: State lock errors
+- **Solution**: Ensure no other Terraform process is running. If stuck, use `terraform force-unlock <LOCK_ID>`
+
+## Additional Resources
 
 - [Azure Provider Documentation](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [Terraform Best Practices](https://www.terraform-best-practices.com/)
 - [Azure Naming Conventions](https://docs.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/naming-and-tagging)
 
-## 📄 License
+## License
 
 This project structure is provided as-is for educational and development purposes.
 
-## 👥 Contributing
+## Contributing
 
 For changes or improvements:
 1. Test in dev environment first
@@ -258,6 +320,6 @@ For changes or improvements:
 
 ---
 
-**Version**: 1.0  
-**Terraform Version**: >= 1.0  
+**Version**: 2.0
+**Terraform Version**: >= 1.0
 **Azure Provider Version**: 4.1.0
