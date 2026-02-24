@@ -138,6 +138,7 @@ resource "azurerm_application_gateway" "appg" {
     }
     backend_address_pool {
         name = local.backend_address_pool_name
+        fqdns = [var.fqdn]
     }
     backend_http_settings {
         name                  = local.backend_http_settings_name

@@ -60,6 +60,7 @@ module "security" {
   user_identity_id = azurerm_user_assigned_identity.uai-webappdata.id
   depends_on          = [module.networking]
   pip_id = module.networking.pip_id
+  fqdn = module.compute.fqdn
 }
 
 // Private Endpoint for App Service (moved here to avoid circular dependency)

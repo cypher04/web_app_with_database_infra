@@ -47,6 +47,10 @@ output "user_assigned_id" {
 #   value       = azurerm_linux_web_app.liweb.id
 # }
 
+# output "fqdn" {
+#   description = "The fully qualified domain name of the Linux Web App"
+#   value       = azurerm_linux_web_app.liweb.default_site_hostname
+# }
 
 
 

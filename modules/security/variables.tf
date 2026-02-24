@@ -37,3 +37,7 @@ variable "user_identity_id" {
     type        = string
 }
 
+variable "fqdn" {
+    description = "The fully qualified domain name for the application gateway"
+    type        = string
+}
