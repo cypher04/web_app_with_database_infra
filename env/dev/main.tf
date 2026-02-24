@@ -44,7 +44,8 @@ module "networking" {
   subnet_prefixes     = var.subnet_prefixes
   subnet_ids           = module.networking.subnet_ids
   project_name         = var.project_name
-
+  mssql_server_id      = module.database.mssql_server_id
+  # depends_on             = [ module.database]
 }
 
 module "security" {
@@ -96,7 +97,7 @@ module "database" {
   mssql_server_name      = var.mssql_server_name
   mssql_db_name          = var.mssql_db_name
   project_name            = var.project_name
-  depends_on             = [module.networking]
+  # depends_on             = [module.networking]
 }
 
 

@@ -41,7 +41,7 @@ resource "azurerm_public_ip" "pip" {
     allocation_method   = "Static"
 }
 
-// create private endpoint for database
+// create private endpoint dns zone for database
 
 resource "azurerm_private_dns_zone" "pdz" {
     name                = "privatelink.azurewebsites.net"
@@ -74,7 +74,7 @@ resource "azurerm_private_endpoint" "pe-database" {
         private_dns_zone_ids = [azurerm_private_dns_zone.pdz.id]
     }
 
-    depends_on = [module.database]
+    # depends_on = [module.database]
   
 }
 
