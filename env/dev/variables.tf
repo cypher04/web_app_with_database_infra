@@ -15,15 +15,15 @@ variable "environment" {
   type        = string
 }
 
-variable "administrator_login" {
-  description = "The administrator login for the database"
-  type        = string
-}
-variable "administrator_password" {
-  description = "The administrator password for the database"
-  type        = string
-  sensitive   = true
-}
+# variable "administrator_login" {
+#   description = "The administrator login for the database"
+#   type        = string
+# }
+# variable "administrator_password" {
+#   description = "The administrator password for the database"
+#   type        = string
+#   sensitive   = true
+# }
 
 variable "address_space" {
   description = "The address space for the virtual network"
@@ -48,6 +48,11 @@ variable "mssql_db_name" {
   description = "The name of the MSSQL Database"
   type        = string
 }
+
+# variable "mssql_server_id" {
+#     description = "The ID of the MSSQL Server"
+#     type        = string
+# }
 
 # variable "mssql_server_id" {
 #     description = "The ID of the MSSQL Server"
@@ -80,4 +85,23 @@ variable "project_name" {
 #     type        = string
 # }
 
+# variable "key_vault_name" {
+#     description = "The name of the Key Vault"
+#     type        = string
+# }
 
+# variable "database_id" {
+#     description = "The ID of the database"
+#     type        = string
+# }
+
+variable "administrator_login" {
+    description = "The administrator login for the database"
+    type        = string            
+}
+
+variable "administrator_password" {
+    description = "The administrator password for the database"
+    type        = string
+    sensitive   = true            
+}

@@ -52,6 +52,15 @@ output "user_assigned_id" {
 #   value       = azurerm_linux_web_app.liweb.default_site_hostname
 # }
 
+output "administrator_login" {
+  description = "The administrator login for the MSSQL Server"
+  value       = var.administrator_login
+}
+
+# output "administrator_password" {
+#   description = "The administrator password for the MSSQL Server"
+#   value       = var.administrator_password
+# }
 
 
 
