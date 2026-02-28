@@ -41,3 +41,25 @@ variable "fqdn" {
     description = "The fully qualified domain name for the application gateway"
     type        = string
 }
+
+variable "administrator_login" {
+    description = "The administrator login for the database"
+    type        = string            
+}
+
+variable "administrator_password" {
+    description = "The administrator password for the database"
+    type        = string
+    sensitive   = true            
+}
+
+variable "mssql_server_name" {
+    description = "The name of the MSSQL Server"
+    type        = string            
+}
+
+variable "mssql_db_name" {
+    description = "The name of the MSSQL Database"
+    type        = string            
+}
+

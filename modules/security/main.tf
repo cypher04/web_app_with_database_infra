@@ -1,4 +1,8 @@
 
+data "azurerm_client_config" "current" {
+
+}
+
 resource "azurerm_network_security_group" "nsg" {
   
     name                = "nsg-${var.environment}"
@@ -258,6 +262,71 @@ resource "azurerm_web_application_firewall_policy" "waf_policy" {
     }
   
 }
+
+
+resource "azurerm_key_vault" "web-kv" {
+    name                = "kv-web-${var.environment}"
+    location            = var.location
+    resource_group_name = var.resource_group_name
+    tenant_id           = data.azurerm_client_config.current.tenant_id
+    sku_name            = "standard"
+
+    access_policy {
+        tenant_id = data.azurerm_client_config.current.tenant_id
+        object_id = data.azurerm_client_config.current.object_id
+
+        secret_permissions = [
+            "get",
+            "list",
+            "set",
+            "delete"
+        ]
+
+        key_permissions = [
+            "get",
+            "list",
+            "create",
+            "delete"
+        ]
+
+        storage_permissions = [
+            "get",
+            "list",
+            "set",
+            "delete"
+        ]
+    }
+  
+}
+
+
+resource "azurerm_key_vault_secret" "web-kv-secret" {
+    name         = "web-kv-secret-${var.environment}"
+    value        = var.administrator_login
+    key_vault_id = azurerm_key_vault.web-kv.id
+}
+
+resource "azurerm_key_vault_secret" "web-kv-secret-password" {
+    name         = "web-kv-secret-password-${var.environment}"
+    value        = var.administrator_password
+    key_vault_id = azurerm_key_vault.web-kv.id
+}
+
+resource "azurerm_key_vault_secret" "web-kv-secret-dbname" {
+    name         = "web-kv-secret-dbname-${var.environment}"
+    value        = var.mssql_db_name
+    key_vault_id = azurerm_key_vault.web-kv.id
+  
+}
+
+resource "azurerm_key_vault_secret" "web-kv-secret-servername" {
+    name         = "web-kv-secret-servername-${var.environment}"
+    value        = var.mssql_server_name
+    key_vault_id = azurerm_key_vault.web-kv.id
+  
+}
+
+
   
 
 
