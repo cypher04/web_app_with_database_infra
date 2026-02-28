@@ -54,3 +54,8 @@ variable "mssql_server_id" {
     description = "The ID of the MSSQL Server"
     type        = any
 }
+
+variable "database_id" {
+    description = "The ID of the MSSQL Database"
+    type        = string
+}

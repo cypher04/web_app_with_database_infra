@@ -24,3 +24,9 @@ output "network_security_group_id" {
 #     description = "The IDs of the subnet and network security group associations"
 #     value       = azurerm_subnet_network_security
 # }
+
+
+output "key_vault_name" {
+    description = "The name of the Key Vault"
+    value       = azurerm_key_vault.web-kv.name
+}
