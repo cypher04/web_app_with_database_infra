@@ -64,6 +64,13 @@ resource "azurerm_role_assignment" "app_mssql_access" {
   
 }
 
+resource "azurerm_role_assignment" "app_keyvault_access" {
+    scope                = var.key_vault_id
+    role_definition_name = "Key Vault Secrets User"
+    principal_id         = azurerm_linux_web_app.liweb.identity[0].principal_id
+  
+}
+
 
 
 

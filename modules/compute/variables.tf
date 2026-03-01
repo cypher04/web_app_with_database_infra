@@ -59,3 +59,8 @@ variable "database_id" {
     description = "The ID of the MSSQL Database"
     type        = string
 }
+
+variable "key_vault_id" {
+    description = "The ID of the Key Vault"
+    type        = any
+}

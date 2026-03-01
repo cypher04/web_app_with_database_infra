@@ -32,6 +32,7 @@ module "compute" {
   mssql_server_id        = module.database.server_id
   database_id            = module.database.database_id
   # linux_web_app_id = module.compute.linux_web_app_id
+  key_vault_id = module.security.key_vault_id
   depends_on             = [ module.database]
 }
 
