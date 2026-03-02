@@ -264,7 +264,7 @@ resource "azurerm_web_application_firewall_policy" "waf_policy" {
 }
 
 
-resource "azurerm_key_vault" "web-kv" {
+resource "azurerm_key_vault" "web_kv" {
     name                = "kv-web-${var.environment}"
     location            = var.location
     resource_group_name = var.resource_group_name
@@ -276,53 +276,53 @@ resource "azurerm_key_vault" "web-kv" {
         object_id = data.azurerm_client_config.current.object_id
 
         secret_permissions = [
-            "get",
-            "list",
-            "set",
-            "delete"
+            "Get",
+            "List",
+            "Set",
+            "Delete"
         ]
 
         key_permissions = [
-            "get",
-            "list",
-            "create",
-            "delete"
+            "Get",
+            "List",
+            "Create",
+            "Delete"
         ]
 
         storage_permissions = [
-            "get",
-            "list",
-            "set",
-            "delete"
+            "Get",
+            "List",
+            "Set",
+            "Delete"
         ]
     }
   
 }
 
 
-resource "azurerm_key_vault_secret" "web-kv-secret" {
+resource "azurerm_key_vault_secret" "web_kv_secret" {
     name         = "web-kv-secret-${var.environment}"
     value        = var.administrator_login
-    key_vault_id = azurerm_key_vault.web-kv.id
+    key_vault_id = azurerm_key_vault.web_kv.id
 }
 
-resource "azurerm_key_vault_secret" "web-kv-secret-password" {
+resource "azurerm_key_vault_secret" "web_kv_secret_password" {
     name         = "web-kv-secret-password-${var.environment}"
     value        = var.administrator_password
-    key_vault_id = azurerm_key_vault.web-kv.id
+    key_vault_id = azurerm_key_vault.web_kv.id
 }
 
-resource "azurerm_key_vault_secret" "web-kv-secret-dbname" {
+resource "azurerm_key_vault_secret" "web_kv_secret_dbname" {
     name         = "web-kv-secret-dbname-${var.environment}"
     value        = var.mssql_db_name
-    key_vault_id = azurerm_key_vault.web-kv.id
+    key_vault_id =azurerm_key_vault.web_kv.id
   
 }
 
-resource "azurerm_key_vault_secret" "web-kv-secret-servername" {
+resource "azurerm_key_vault_secret" "web_kv_secret_servername" {
     name         = "web-kv-secret-servername-${var.environment}"
     value        = var.mssql_server_name
-    key_vault_id = azurerm_key_vault.web-kv.id
+    key_vault_id = azurerm_key_vault.web_kv.id
   
 }
 

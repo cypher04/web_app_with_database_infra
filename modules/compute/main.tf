@@ -38,8 +38,7 @@ resource "azurerm_linux_web_app" "liweb" {
     
     app_settings = {
         "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-        "DATABASE_URL" = "Server=@Microsoft.KeyVault(SecretUri=${var.mssql_server_id}); Database=@Microsoft.KeyVault(SecretUri=${var.database_id}); User=@Microsoft.KeyVault(SecretUri=${var.administrator_login}); Password=@Microsoft.KeyVault(SecretUri=${var.administrator_password});"
-        # "DATABASE_URL" = "Server=${var.mssql_server_name};Database=${var.mssql_db_name};User Id=${var.administrator_login};Password=${var.administrator_password};"
+        "DATABASE_URL" = "Server=${var.mssql_server_name};Database=${var.mssql_db_name};User Id=${var.administrator_login};Password=${var.administrator_password};"
         "WEBSITES_PORT" = "3000"
     }
 }
@@ -60,6 +59,13 @@ resource "azurerm_role_assignment" "app_identity_contributor" {
 resource "azurerm_role_assignment" "app_mssql_access" {
     scope                = var.mssql_server_id
     role_definition_name = "SQL DB Contributor"
+    principal_id         = azurerm_linux_web_app.liweb.identity[0].principal_id
+  
+}
+
+resource "azurerm_role_assignment" "app_keyvault_access" {
+    scope                = var.key_vault_id
+    role_definition_name = "Key Vault Secrets User"
     principal_id         = azurerm_linux_web_app.liweb.identity[0].principal_id
   
 }
