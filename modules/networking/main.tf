@@ -41,7 +41,7 @@ resource "azurerm_public_ip" "pip" {
     allocation_method   = "Static"
 }
 
-// create private endpoint dns zone for database
+// Private DNS zone for App Service
 
 resource "azurerm_private_dns_zone" "pdz" {
     name                = "privatelink.azurewebsites.net"
@@ -52,6 +52,21 @@ resource "azurerm_private_dns_zone_virtual_network_link" "pdz_vnet_link" {
     name                  = "${var.project_name}-pdz-vnet-link-${var.environment}"
     resource_group_name   = var.resource_group_name
     private_dns_zone_name = azurerm_private_dns_zone.pdz.name
+    virtual_network_id    = azurerm_virtual_network.main.id
+    registration_enabled  = false
+}
+
+// Private DNS zone for SQL Database
+
+resource "azurerm_private_dns_zone" "pdz_db" {
+    name                = "privatelink.database.windows.net"
+    resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "pdz_db_vnet_link" {
+    name                  = "${var.project_name}-pdz-db-vnet-link-${var.environment}"
+    resource_group_name   = var.resource_group_name
+    private_dns_zone_name = azurerm_private_dns_zone.pdz_db.name
     virtual_network_id    = azurerm_virtual_network.main.id
     registration_enabled  = false
 }
@@ -71,7 +86,7 @@ resource "azurerm_private_endpoint" "pe-database" {
 
     private_dns_zone_group {
         name                 = "db-dns-zone-group"
-        private_dns_zone_ids = [azurerm_private_dns_zone.pdz.id]
+        private_dns_zone_ids = [azurerm_private_dns_zone.pdz_db.id]
     }
 
     # depends_on = [module.database]

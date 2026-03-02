@@ -31,6 +31,8 @@ function getConfig() {
         encrypt: true,
         trustServerCertificate: false,
       },
+      connectionTimeout: 15000,
+      requestTimeout: 15000,
       pool: {
         max: 10,
         min: 0,
@@ -49,6 +51,8 @@ function getConfig() {
       encrypt: true,
       trustServerCertificate: process.env.NODE_ENV !== "production",
     },
+    connectionTimeout: 15000,
+    requestTimeout: 15000,
     pool: {
       max: 10,
       min: 0,
