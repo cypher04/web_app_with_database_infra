@@ -300,26 +300,26 @@ resource "azurerm_key_vault" "web_kv" {
 }
 
 
-resource "azurerm_key_vault_secret" "web-kv-secret" {
+resource "azurerm_key_vault_secret" "web_kv_secret" {
     name         = "web-kv-secret-${var.environment}"
     value        = var.administrator_login
     key_vault_id = azurerm_key_vault.web_kv.id
 }
 
-resource "azurerm_key_vault_secret" "web-kv-secret-password" {
+resource "azurerm_key_vault_secret" "web_kv_secret_password" {
     name         = "web-kv-secret-password-${var.environment}"
     value        = var.administrator_password
     key_vault_id = azurerm_key_vault.web_kv.id
 }
 
-resource "azurerm_key_vault_secret" "web-kv-secret-dbname" {
+resource "azurerm_key_vault_secret" "web_kv_secret_dbname" {
     name         = "web-kv-secret-dbname-${var.environment}"
     value        = var.mssql_db_name
     key_vault_id =azurerm_key_vault.web_kv.id
   
 }
 
-resource "azurerm_key_vault_secret" "web-kv-secret-servername" {
+resource "azurerm_key_vault_secret" "web_kv_secret_servername" {
     name         = "web-kv-secret-servername-${var.environment}"
     value        = var.mssql_server_name
     key_vault_id = azurerm_key_vault.web_kv.id
