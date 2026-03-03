@@ -28,11 +28,11 @@ output "network_security_group_id" {
 
 output "key_vault_name" {
     description = "The name of the Key Vault"
-    value       = azurerm_key_vault.web_kv.name
+    value       = azurerm_key_vault.webapp_kv.name
 }
 
 
 output "key_vault_id" {
     description = "The ID of the Key Vault"
-    value       = azurerm_key_vault.web_kv.id
+    value       = azurerm_key_vault.webapp_kv.id
 }

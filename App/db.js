@@ -24,7 +24,7 @@ function getConfig() {
     const parsed = parseConnectionString(connStr);
     return {
       server: parsed["server"] || "localhost",
-      database: parsed["database"] || "maindb",
+      database: parsed["database"] || "webappdbdev",
       user: parsed["user id"] || "sa",
       password: parsed["password"] || "",
       options: {

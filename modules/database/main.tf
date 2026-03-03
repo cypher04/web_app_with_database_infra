@@ -1,6 +1,6 @@
 
 resource "azurerm_mssql_server" "mssql_server" {
-    name                         = "${var.project_name}-mssql-server-${var.environment}"
+    name                         = "${var.mssql_server_name}"
     resource_group_name          = var.resource_group_name
     location                     = var.location
     version                      = "12.0"
@@ -20,7 +20,7 @@ resource "azurerm_mssql_server" "mssql_server" {
 }
 
 resource "azurerm_mssql_database" "msdb" {
-    name                = "maindb"
+    name               = "${var.mssql_db_name}"
     server_id           = azurerm_mssql_server.mssql_server.id
     sku_name           = "S0"
     collation          = "SQL_Latin1_General_CP1_CI_AS"
