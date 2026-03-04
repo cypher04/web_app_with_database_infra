@@ -28,7 +28,7 @@ resource "azurerm_network_security_group" "nsg" {
         access                     = "Allow"
         protocol                   = "Tcp"
         source_port_range          = "*"
-        destination_port_range     = "65200-65535"
+        destination_port_range     = "443"
         source_address_prefix      = "*"
         destination_address_prefix = "*"
     }    
@@ -45,7 +45,7 @@ resource "azurerm_network_security_group" "fordb" {
         direction                  = "Inbound"
         access                     = "Allow"
         protocol                   = "Tcp"
-        source_port_range          = "3000"
+        source_port_range          = "*"
         destination_port_range     = "1433"
         source_address_prefix      = var.subnet_prefixes["app"]
         destination_address_prefix = "*"
@@ -82,7 +82,7 @@ resource "azurerm_network_security_group" "fordb" {
         access                     = "Deny"
         protocol                   = "Tcp"
         source_port_range          = "*"
-        destination_port_range     = "*"
+        destination_port_range     = "53"
         source_address_prefix      = "*"
         destination_address_prefix = "*"
     }
@@ -264,8 +264,8 @@ resource "azurerm_web_application_firewall_policy" "waf_policy" {
 }
 
 
-resource "azurerm_key_vault" "web_kv" {
-    name                = "kv-web-${var.environment}"
+resource "azurerm_key_vault" "webapp_kv" {
+    name                = "kv-webapp-${var.environment}-001"
     location            = var.location
     resource_group_name = var.resource_group_name
     tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -279,7 +279,9 @@ resource "azurerm_key_vault" "web_kv" {
             "Get",
             "List",
             "Set",
-            "Delete"
+            "Delete",
+            "Recover",
+            "Purge"
         ]
 
         key_permissions = [
@@ -303,26 +305,26 @@ resource "azurerm_key_vault" "web_kv" {
 resource "azurerm_key_vault_secret" "web_kv_secret" {
     name         = "web-kv-secret-${var.environment}"
     value        = var.administrator_login
-    key_vault_id = azurerm_key_vault.web_kv.id
+    key_vault_id = azurerm_key_vault.webapp_kv.id
 }
 
 resource "azurerm_key_vault_secret" "web_kv_secret_password" {
     name         = "web-kv-secret-password-${var.environment}"
     value        = var.administrator_password
-    key_vault_id = azurerm_key_vault.web_kv.id
+    key_vault_id = azurerm_key_vault.webapp_kv.id
 }
 
 resource "azurerm_key_vault_secret" "web_kv_secret_dbname" {
     name         = "web-kv-secret-dbname-${var.environment}"
     value        = var.mssql_db_name
-    key_vault_id =azurerm_key_vault.web_kv.id
+    key_vault_id =azurerm_key_vault.webapp_kv.id
   
 }
 
 resource "azurerm_key_vault_secret" "web_kv_secret_servername" {
     name         = "web-kv-secret-servername-${var.environment}"
     value        = var.mssql_server_name
-    key_vault_id = azurerm_key_vault.web_kv.id
+    key_vault_id = azurerm_key_vault.webapp_kv.id
   
 }
 

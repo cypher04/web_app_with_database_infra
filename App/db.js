@@ -24,13 +24,15 @@ function getConfig() {
     const parsed = parseConnectionString(connStr);
     return {
       server: parsed["server"] || "localhost",
-      database: parsed["database"] || "maindb",
+      database: parsed["database"] || "webappdbdev",
       user: parsed["user id"] || "sa",
       password: parsed["password"] || "",
       options: {
         encrypt: true,
         trustServerCertificate: false,
       },
+      connectionTimeout: 15000,
+      requestTimeout: 15000,
       pool: {
         max: 10,
         min: 0,
@@ -49,6 +51,8 @@ function getConfig() {
       encrypt: true,
       trustServerCertificate: process.env.NODE_ENV !== "production",
     },
+    connectionTimeout: 15000,
+    requestTimeout: 15000,
     pool: {
       max: 10,
       min: 0,

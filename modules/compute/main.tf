@@ -33,13 +33,20 @@ resource "azurerm_linux_web_app" "liweb" {
     # }
     
     site_config {
-        
+
+        vnet_route_all_enabled = true
+        application_stack {
+            node_version = "20-lts"
+        }
     }
+    
     
     app_settings = {
         "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-        "DATABASE_URL" = "Server=${var.mssql_server_name};Database=${var.mssql_db_name};User Id=${var.administrator_login};Password=${var.administrator_password};"
+        "DATABASE_URL" = "Server=${var.mssql_server_name}.database.windows.net;Database=${var.mssql_db_name};User Id=${var.administrator_login};Password=${var.administrator_password};"
         "WEBSITES_PORT" = "3000"
+        "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
+       
     }
 }
 
