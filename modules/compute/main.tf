@@ -21,25 +21,30 @@ resource "azurerm_linux_web_app" "liweb" {
     location            = var.location
     resource_group_name = var.resource_group_name
     service_plan_id     = azurerm_service_plan.main.id
-    client_certificate_enabled = true
-    client_certificate_mode = "Required"
+    # client_certificate_enabled = true
+    # client_certificate_mode = "Required"
     identity {
         type = "SystemAssigned"
     }
 
-    auth_settings {
-        enabled = true
-        unauthenticated_client_action = "RedirectToLoginPage"
-    }
+    # auth_settings {
+    #     enabled = true
+    #     unauthenticated_client_action = "RedirectToLoginPage"
+    # }
     
     site_config {
-        
+        application_stack {
+          node_version = "20-lts"
+        }
+
+        vnet_route_all_enabled = true
     }
     
     app_settings = {
         "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
         "DATABASE_URL" = "Server=${var.mssql_server_name};Database=${var.mssql_db_name};User Id=${var.administrator_login};Password=${var.administrator_password};"
         "WEBSITES_PORT" = "3000"
+        SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
     }
 }
 

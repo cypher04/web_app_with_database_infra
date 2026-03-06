@@ -44,7 +44,7 @@ resource "azurerm_public_ip" "pip" {
 // create private endpoint dns zone for database
 
 resource "azurerm_private_dns_zone" "pdz" {
-    name                = "privatelink.azurewebsites.net"
+    name                = "privatelink.database.windows.net"
     resource_group_name = var.resource_group_name
 }
 
