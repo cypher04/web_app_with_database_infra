@@ -55,10 +55,10 @@ variable "mssql_server_id" {
     type        = any
 }
 
-variable "database_id" {
-    description = "The ID of the MSSQL Database"
-    type        = string
-}
+# variable "database_id" {
+#     description = "The ID of the MSSQL Database"
+#     type        = string
+# }
 
 variable "key_vault_id" {
     description = "The ID of the Key Vault"

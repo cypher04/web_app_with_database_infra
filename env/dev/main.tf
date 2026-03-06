@@ -63,10 +63,10 @@ module "security" {
   depends_on          = [module.networking]
   pip_id = module.networking.pip_id
   fqdn = module.compute.fqdn
-  # administrator_login = var.administrator_login
-  # administrator_password = var.administrator_password
-  # mssql_server_name = var.mssql_server_name
-  # mssql_db_name = var.mssql_db_name
+  administrator_login = var.administrator_login
+  administrator_password = var.administrator_password
+  mssql_server_name = var.mssql_server_name
+  mssql_db_name = var.mssql_db_name
 }
 
 // Private Endpoint for App Service (moved here to avoid circular dependency)
@@ -91,9 +91,19 @@ resource "azurerm_private_endpoint" "pe-appservice" {
   depends_on = [module.compute, module.networking]
 }
 
-resource "azurerm_private_dns_zone" "pe-dz" {
-  name                = "privatelink.azurewebsites.net"
-  resource_group_name = azurerm_resource_group.main.name
+// Private DNS zone for App Service
+
+resource "azurerm_private_dns_zone" "pdz" {
+    name                = "privatelink.azurewebsites.net"
+    resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "pdz_vnet_link" {
+    name                  = "${var.project_name}-pdz-vnet-link-${var.environment}"
+    resource_group_name   = var.resource_group_name
+    private_dns_zone_name = azurerm_private_dns_zone.pdz.name
+    virtual_network_id    = azurerm_virtual_network.main.id
+    registration_enabled  = false
 }
 
 module "database" {

@@ -41,20 +41,7 @@ resource "azurerm_public_ip" "pip" {
     allocation_method   = "Static"
 }
 
-// Private DNS zone for App Service
 
-resource "azurerm_private_dns_zone" "pdz" {
-    name                = "privatelink.database.windows.net"
-    resource_group_name = var.resource_group_name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "pdz_vnet_link" {
-    name                  = "${var.project_name}-pdz-vnet-link-${var.environment}"
-    resource_group_name   = var.resource_group_name
-    private_dns_zone_name = azurerm_private_dns_zone.pdz.name
-    virtual_network_id    = azurerm_virtual_network.main.id
-    registration_enabled  = false
-}
 
 // Private DNS zone for SQL Database
 
