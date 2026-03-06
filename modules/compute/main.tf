@@ -33,24 +33,60 @@ resource "azurerm_linux_web_app" "liweb" {
     # }
     
     site_config {
+<<<<<<< HEAD
         application_stack {
           node_version = "20-lts"
         }
 
         vnet_route_all_enabled = true
+=======
+
+        vnet_route_all_enabled = true
+        application_stack {
+            node_version = "20-lts"
+        }
+>>>>>>> e5edc5a96d03d6f7f81f57a4bd35a41db07a8118
     }
+    
     
     app_settings = {
         "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-        "DATABASE_URL" = "Server=${var.mssql_server_name};Database=${var.mssql_db_name};User Id=${var.administrator_login};Password=${var.administrator_password};"
+        "DATABASE_URL" = "Server=${var.mssql_server_name}.database.windows.net;Database=${var.mssql_db_name};User Id=${var.administrator_login};Password=${var.administrator_password};"
         "WEBSITES_PORT" = "3000"
+<<<<<<< HEAD
         SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+=======
+        "SCM_DO_BUILD_DURING_DEPLOYMENT" = "true"
+       
+>>>>>>> e5edc5a96d03d6f7f81f57a4bd35a41db07a8118
     }
 }
 
 resource "azurerm_app_service_virtual_network_swift_connection" "asvnet" {
     app_service_id = azurerm_linux_web_app.liweb.id
     subnet_id      = var.subnet_id
+}
+
+
+resource "azurerm_role_assignment" "app_identity_contributor" {
+    scope                = var.mssql_server_id
+    role_definition_name = "Contributor"
+    principal_id         = azurerm_linux_web_app.liweb.identity[0].principal_id
+  
+}
+
+resource "azurerm_role_assignment" "app_mssql_access" {
+    scope                = var.mssql_server_id
+    role_definition_name = "SQL DB Contributor"
+    principal_id         = azurerm_linux_web_app.liweb.identity[0].principal_id
+  
+}
+
+resource "azurerm_role_assignment" "app_keyvault_access" {
+    scope                = var.key_vault_id
+    role_definition_name = "Key Vault Secrets User"
+    principal_id         = azurerm_linux_web_app.liweb.identity[0].principal_id
+  
 }
 
 
